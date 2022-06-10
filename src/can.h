@@ -15,7 +15,7 @@ class CanBus {
         void eventLoop();
         void enableCan(uint8_t bus);
         void disableCan(uint8_t bus);
-        void write(uint8_t bus, CAN_message_t msg);
+        int write(uint8_t bus, CAN_message_t msg);
 
     private:
         FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> can1;

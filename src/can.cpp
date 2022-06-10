@@ -62,13 +62,13 @@ void CanBus::enableCan(uint8_t bus) {
   } 
 }
 
-void CanBus::write(uint8_t bus, CAN_message_t msg) {
+int CanBus::write(uint8_t bus, CAN_message_t msg) {
   if (bus == 1) {
-    can1.write(msg);
+    return can1.write(msg);
   } else if (bus == 2) {
-    can2.write(msg);
+    return can2.write(msg);
   } else if (bus == 3) {
-    can3.write(msg);
+    return can3.write(msg);
   } 
 }
 
