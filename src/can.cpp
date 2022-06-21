@@ -69,6 +69,7 @@ int CanBus::write(uint8_t bus, CAN_message_t msg) {
     return can2.write(msg);
   } else if (bus == 3) {
     return can3.write(msg);
-  } 
+  }
+  return 0;
 }
 

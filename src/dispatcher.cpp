@@ -8,36 +8,37 @@ Dispatcher::Dispatcher(CanBus* canBus) {
     can = canBus;
 }
 
+void Dispatcher::runIndex(uint8_t msgIndex) {
+    CAN_message_t msg = messages[msgIndex];
+    if (msg.id == 0) {
+        return;
+    } 
+    uint32_t last = lastSent[msgIndex];
+    uint32_t currentTime = millis();
+    if (currentTime - last >= 1000.0 / msg.frequency) {
+        // dispatch event
+        for (size_t i = 0; i < msg.len; i++) {
+            msg.buf[i] = msg.bufRef[i];
+        }
+        if (msg.checksum) {
+            attachChecksum(msg.id, msg.len, msg.buf);
+        }
+        can->write(msg.mbus, msg);
+        lastSent[msgIndex] = millis();
+    }
+}
 
 void Dispatcher::run() {
     for (size_t i = 0; i < 15; i++) {
-        CAN_message_t msg = messages[i];
-        if (msg.id == 0) {
-            continue;
-        }
-        uint32_t last = lastSent[i];
-        uint32_t currentTime = millis();
-        if (currentTime - last >= 1000.0 / msg.frequency) {
-            // dispatch event
-            if (msg.checksum) {
-                attachChecksum(msg.id, msg.len, msg.buf);
-            }
-            Serial.println(currentTime - last);
-            can->write(msg.mbus, msg);
-            lastSent[i] = millis();
-        }
-        
+        runIndex(i);
     }
-    
 }
 
 void Dispatcher::schedule(uint8_t bus, uint16_t id, uint8_t* buff, uint8_t len, uint8_t freqeuncy, bool checksum) {
     CAN_message_t msg;
     msg.mbus = bus;
     msg.id = id;
-    for (size_t i = 0; i < len; i++) {
-        msg.buf[i] = buff[i];
-    }
+    msg.bufRef = buff;
     msg.len = len;
     msg.frequency = freqeuncy;
     msg.checksum = checksum;

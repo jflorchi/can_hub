@@ -13,6 +13,7 @@ class Dispatcher {
         Dispatcher(CanBus* can);
 
         void run();
+        void runIndex(uint8_t msgIndex);
         void schedule(uint8_t bus, uint16_t id, uint8_t* buff, uint8_t len, uint8_t freqeuncy, bool checksum);
 
     private:
