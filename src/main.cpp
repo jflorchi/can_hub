@@ -8,7 +8,7 @@ void Can3Callback(const CAN_message_t &msg);
 bool isAllowedMessage(uint16_t messageId);
 
 const uint8_t ALLOWED_MESSAGES_SIZE = 5;
-uint16_t ALLOWED_MESSAGES[ALLOWED_MESSAGES_SIZE] = {0xb4, 0x3b1, 0x2c1, 0x399, 0x24};
+uint16_t ALLOWED_MESSAGES[ALLOWED_MESSAGES_SIZE] = {0xb4};
 
 uint8_t ANGLE[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 uint8_t WHEEL_SPEEDS[8] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
@@ -43,19 +43,19 @@ void setup() {
   // bus, id, buffer, length, frequency, checksum // 2
   dispatcher.schedule(2, 0x25, ANGLE, 8, 84, true);
   dispatcher.schedule(2, 0xAA, WHEEL_SPEEDS, 8, 84, false);
-  dispatcher.schedule(2, 0x3BC, GEAR_MSG, 8, 84, false);
+  //dispatcher.schedule(2, 0x3BC, GEAR_MSG, 8, 84, false);
   dispatcher.schedule(2, 0x1C4, MSG15, 8, 84, false);
-  dispatcher.schedule(2, 0x414, MSG8, 7, 84, false);
-  dispatcher.schedule(2, 0x489, MSG10, 7, 84, false);
-  dispatcher.schedule(2, 0x48A, MSG11, 7, 84, false);
+  //dispatcher.schedule(2, 0x414, MSG8, 7, 84, false);
+  //dispatcher.schedule(2, 0x489, MSG10, 7, 84, false);
+  //dispatcher.schedule(2, 0x48A, MSG11, 7, 84, false);
   dispatcher.schedule(2, 0x48B, MSG12, 8, 84, false);
-  dispatcher.schedule(2, 0x4D3, MSG13, 8, 84, false);
-  dispatcher.schedule(2, 0x367, MSG7, 2, 40, false);
+  //dispatcher.schedule(2, 0x4D3, MSG13, 8, 84, false);
+  //dispatcher.schedule(2, 0x367, MSG7, 2, 40, false);
 
   // dispatcher.schedule(1, 0x614, STEERING_LEVER_MSG, 2, 4, false); // 1
   dispatcher.schedule(1, 0x3BC, GEAR_MSG, 8, 84, false); // 1
 
-  dispatcher.schedule(3, 0x001, IGNITION_MSG, 3, 4, true);
+  dispatcher.schedule(3, 0x001, IGNITION_MSG, 3, 12, true);
 }
 
 void loop() {
@@ -68,7 +68,7 @@ void loop() {
   if (ignition) {
     digitalWrite(13, HIGH);
 
-    IGNITION_MSG[0] = ((raw_wheel_speeds[0] + raw_wheel_speeds[1] + raw_wheel_speeds[2] + raw_wheel_speeds[3]) / 4) & 0xFF;
+    IGNITION_MSG[0] = ((uint16_t) (((raw_wheel_speeds[0] + raw_wheel_speeds[1] + raw_wheel_speeds[2] + raw_wheel_speeds[3]) / 4.0) + 0.5)) & 0xFF;
 
     canBus.eventLoop();
     dispatcher.run();
@@ -81,15 +81,15 @@ void loop() {
 // Vehicle CAN Bus
 void Can1Callback(const CAN_message_t &msg) {
   if (msg.id == 0xb0) {
-      raw_wheel_speeds[0] = (msg.buf[0] << 8) | (msg.buf[1] & 0xFF);
-      raw_wheel_speeds[1] = (msg.buf[2] << 8) | (msg.buf[3] & 0xFF);
+      raw_wheel_speeds[0] = ((msg.buf[0] << 8) | (msg.buf[1] & 0xFF)) * 0.01;
+      raw_wheel_speeds[1] = ((msg.buf[2] << 8) | (msg.buf[3] & 0xFF)) * 0.01;
       WHEEL_SPEEDS[0] = msg.buf[0] + 0x1a;
       WHEEL_SPEEDS[1] = msg.buf[1] + 0x6f;
       WHEEL_SPEEDS[2] = msg.buf[2] + 0x1a;
       WHEEL_SPEEDS[3] = msg.buf[3] + 0x6f;
   } else if (msg.id == 0xb2) {
-      raw_wheel_speeds[2] = (msg.buf[0] << 8) | (msg.buf[1] & 0xFF);
-      raw_wheel_speeds[3] = (msg.buf[2] << 8) | (msg.buf[3] & 0xFF);
+      raw_wheel_speeds[2] = ((msg.buf[0] << 8) | (msg.buf[1] & 0xFF)) * 0.01;
+      raw_wheel_speeds[3] = ((msg.buf[2] << 8) | (msg.buf[3] & 0xFF)) * 0.01;
       WHEEL_SPEEDS[4] = msg.buf[0] + 0x1a;
       WHEEL_SPEEDS[5] = msg.buf[1] + 0x6f;
       WHEEL_SPEEDS[6] = msg.buf[2] + 0x1a;
